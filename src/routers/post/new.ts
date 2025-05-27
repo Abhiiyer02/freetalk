@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import express  from "express";
-import Post from "src/models/post";
+import Post from "../../models/post";
 
 const router = express.Router();
 
-router.post('/api/posts/new', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/api/post/new', async (req: Request, res: Response, next: NextFunction) => {
     console.log('Creating a new post');
     const { title, content } = req.body;
     if(!title || !content){
@@ -18,8 +18,15 @@ router.post('/api/posts/new', async (req: Request, res: Response, next: NextFunc
         content
     })
 
-    await newPost.save();
-
-    res.status(201).send(newPost);
-
+    try{
+        await newPost.save();
+        res.status(201).send(newPost);
+    }catch(error){
+        const err = new Error(`Post creation failed : ${error}`) as CustomError;
+        err.statusCode = 500;
+        return next(err);
+    }
+    
 })
+
+export { router as newPostRouter }

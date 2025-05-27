@@ -1,6 +1,17 @@
 import express from "express";  
 import { Request,Response,NextFunction } from "express";
 import mongoose from "mongoose";
+import cors from "cors"
+import {
+    newPostRouter,
+    updatePostRouter,
+    showPostRouter,
+    deletePostRouter,
+    newCommentRouter,
+    updatedCommentRouter,
+    deleteCommentRouter,
+    showCommentsRouter
+} from "./routers"
 // import {json,urlencoded} from "body-parser";
 // express version 4.0+
 
@@ -19,8 +30,31 @@ const app = express();
 
 // app.use(urlencoded({extended:true}));
 // app.use(json());
-express.urlencoded({extended:false});
-express.json();
+app.use(cors(
+    {
+        origin: '*',
+        optionsSuccessStatus: 200
+    }
+))
+app.use(express.urlencoded({extended:false}));
+app.use(express.json());
+
+app.use((req:Request, res:Response, next:NextFunction)=>{
+    console.log(req.path, req.method);
+    next();
+})
+
+app.use(newPostRouter);
+app.use(updatePostRouter);
+app.use(showPostRouter);
+app.use(deletePostRouter);
+
+app.use(newCommentRouter);
+app.use(updatedCommentRouter);
+app.use(deleteCommentRouter);
+app.use(showCommentsRouter);
+
+
 
 
 declare global {
@@ -29,17 +63,21 @@ declare global {
     }
 }
 
+
 app.use((error:CustomError, req: Request, res:Response, next:NextFunction)=>{
     if (error.statusCode){
         res.status(error.statusCode).json({ message: error.message});
     }
     res.status(500).json({message: 'Something went wrong'});
+    return next(error);
 })
 
 const start = async ()=>{
     if(process.env.MONGO_URI){
         try{
+            console.log(console.log('process.env.MONGO_URI'));
             await mongoose.connect(process.env.MONGO_URI);   
+            console.log('mongodb connected');
             app.listen(process.env.PORT,()=>{
                 console.log('listening on the port: ',process.env.PORT);
             }) 
@@ -47,12 +85,12 @@ const start = async ()=>{
             throw new Error(err as string);
         }
     }else{
-        throw new Error('MONGO_URI is not defined');
+        // throw new Error('MONGO_URI is not defined');
+        app.listen(process.env.PORT,()=>{
+                console.log('listening on the port: ',process.env.PORT);
+            }) 
     }
 }
 
-
-app.listen(process.env.PORT,()=>{
-    console.log('listening on the port: ',process.env.PORT);
-})
+start();
 

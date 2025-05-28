@@ -2,6 +2,7 @@ import express from "express";
 import { Request,Response,NextFunction } from "express";
 import mongoose from "mongoose";
 import cors from "cors"
+import cookieSession from "cookie-session";
 import {
     newPostRouter,
     updatePostRouter,
@@ -12,6 +13,8 @@ import {
     deleteCommentRouter,
     showCommentsRouter
 } from "./routers"
+import { currentUser } from "../common";
+import { requireAuth } from "../common";
 // import {json,urlencoded} from "body-parser";
 // express version 4.0+
 
@@ -39,20 +42,27 @@ app.use(cors(
 app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 
+app.use(cookieSession({
+    signed: false,
+    secure: false
+}))
+
 app.use((req:Request, res:Response, next:NextFunction)=>{
     console.log(req.path, req.method);
     next();
 })
 
-app.use(newPostRouter);
-app.use(updatePostRouter);
-app.use(showPostRouter);
-app.use(deletePostRouter);
+app.use(currentUser);
 
-app.use(newCommentRouter);
-app.use(updatedCommentRouter);
-app.use(deleteCommentRouter);
-app.use(showCommentsRouter);
+app.use(requireAuth, newPostRouter);
+app.use(requireAuth,updatePostRouter);
+app.use(requireAuth,showPostRouter);
+app.use(requireAuth,deletePostRouter);
+
+app.use(requireAuth,newCommentRouter);
+app.use(requireAuth,updatedCommentRouter);
+app.use(requireAuth,deleteCommentRouter);
+app.use(requireAuth,showCommentsRouter);
 
 
 
@@ -73,7 +83,13 @@ app.use((error:CustomError, req: Request, res:Response, next:NextFunction)=>{
 })
 
 const start = async ()=>{
-    if(process.env.MONGO_URI){
+    // if(process.env.MONGO_URI){
+    if(!process.env.MONGO_URI){
+        throw new Error('MONGO_URI must be defined');
+    }
+    if(!process.env.JWT_KEY){
+        throw new Error('JWT_KEY must be defined');
+    }
         try{
             console.log(console.log('process.env.MONGO_URI'));
             await mongoose.connect(process.env.MONGO_URI);   
@@ -84,12 +100,6 @@ const start = async ()=>{
         }catch(err:any){
             throw new Error(err as string);
         }
-    }else{
-        // throw new Error('MONGO_URI is not defined');
-        app.listen(process.env.PORT,()=>{
-                console.log('listening on the port: ',process.env.PORT);
-            }) 
-    }
 }
 
 start();

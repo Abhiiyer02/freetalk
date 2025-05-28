@@ -7,3 +7,4 @@ export * from './comment/new';
 export * from './comment/delete';
 export * from './comment/show';
 export * from './comment/update';
+export * from './auth/signup';

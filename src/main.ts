@@ -11,7 +11,10 @@ import {
     newCommentRouter,
     updatedCommentRouter,
     deleteCommentRouter,
-    showCommentsRouter
+    showCommentsRouter,
+    signupRouter,
+    signinRouter,
+    signoutRouter
 } from "./routers"
 import { currentUser } from "../common";
 import { requireAuth } from "../common";
@@ -53,6 +56,10 @@ app.use((req:Request, res:Response, next:NextFunction)=>{
 })
 
 app.use(currentUser);
+
+app.use(signupRouter)
+app.use(signinRouter)
+app.use(signoutRouter)
 
 app.use(requireAuth, newPostRouter);
 app.use(requireAuth,updatePostRouter);

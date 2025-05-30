@@ -30,3 +30,4 @@ router.post('/signin', async(req:Request, res:Response, next:NextFunction)=>{
     }
     
 })
+export {router as signinRouter}

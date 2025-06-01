@@ -1,7 +1,7 @@
 import {Router, Request, Response, NextFunction} from "express";
 import User from "../../models/user";
 import jwt from 'jsonwebtoken';
-import { BadRequestError } from "../../../common";
+import { BadRequestError, validateRequest } from "../../../common";
 import { DatabaseError } from "common/src/errors/database-error";
 import { body } from "express-validator";
 import { validationResult } from "express-validator";
@@ -20,6 +20,7 @@ router.post('/signup', [
             .length({min: 4, max: 20})
             .withMessage('Password must be valid')
     ],
+    validateRequest,
     async(req:Request, res:Response, next:NextFunction)=>{
     const errors = validationResult(req);
     if(!errors.isEmpty()){

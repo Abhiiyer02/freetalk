@@ -14,7 +14,9 @@ import {
     showCommentsRouter,
     signupRouter,
     signinRouter,
-    signoutRouter
+    signoutRouter,
+    deleteImagesRouter,
+    addImagesRouter
 } from "./routers"
 import { currentUser, errorHandler, NotFoundError } from "../common";
 import { requireAuth } from "../common";
@@ -65,6 +67,8 @@ app.use(requireAuth, newPostRouter);
 app.use(requireAuth,updatePostRouter);
 app.use(requireAuth,showPostRouter);
 app.use(requireAuth,deletePostRouter);
+app.use(requireAuth,deleteImagesRouter);
+app.use(requireAuth,addImagesRouter);
 
 app.use(requireAuth,newCommentRouter);
 app.use(requireAuth,updatedCommentRouter);

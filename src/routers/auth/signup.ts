@@ -3,11 +3,28 @@ import User from "../../models/user";
 import jwt from 'jsonwebtoken';
 import { BadRequestError } from "../../../common";
 import { DatabaseError } from "common/src/errors/database-error";
-
+import { body } from "express-validator";
+import { validationResult } from "express-validator";
 
 const router = Router();
 
-router.post('/signup', async(req:Request, res:Response, next:NextFunction)=>{
+router.post('/signup', [
+        body('email')
+            .trim()    
+            .not().isEmpty()
+            .isEmail()
+            .withMessage('Email must be valid'),
+        body('password')
+            .trim()
+            .not().isEmpty()
+            .length({min: 4, max: 20})
+            .withMessage('Password must be valid')
+    ],
+    async(req:Request, res:Response, next:NextFunction)=>{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return next(new BadRequestError(errors.array()[0].msg));
+    }
     const {email,password} = req.body;
     try{
         const user = await User.findOne({email})

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import express  from "express";
 import Post from "../../models/post";
 import { BadRequestError, InternalServerError } from "../../../common";
+import User from "../../models/user";
 
 const router = express.Router();
 
@@ -12,10 +13,15 @@ router.post('/api/post/new', async (req: Request, res: Response, next: NextFunct
         return next(new BadRequestError('Title and content must be provided'));
     }
 
-    const newPost = new Post({
+    const newPost =  Post.build({
         title,
         content
     })
+
+    await User.findOneAndUpdate(
+        { _id: req.currentUser!.userId },
+        { $push: { posts: newPost._id } },
+    )
 
     try{
         await newPost.save();

@@ -1,6 +1,7 @@
 import {Router, Request, Response, NextFunction} from "express";
 import Comment  from "../../models/comment";
 import Post from "../../models/post";
+import { BadRequestError, NotFoundError,InternalServerError } from "../../../common";
 
 const router = Router();    
 
@@ -9,7 +10,7 @@ router.post('/api/comment/show', async(req:Request, res:Response, next:NextFunct
     if(!postId ){
         const err = new Error('Post ID is required') as CustomError;
         err.statusCode = 400;
-        return next(err);
+        return next(new BadRequestError ('Post ID is required'));
     }
     if(commentId){
         try{
@@ -17,22 +18,18 @@ router.post('/api/comment/show', async(req:Request, res:Response, next:NextFunct
             if(!comment){
                 const err = new Error(`Comment with id ${commentId} not found`) as CustomError;
                 err.statusCode = 404;
-                return next(err);
+                return next(new NotFoundError(`Comment with id ${commentId} not found`));
             }
             res.status(200).json(comment);
         }catch(error){
-            const err = new Error(`Could not fetch comment : ${error}`) as CustomError;
-            err.statusCode = 500;
-            return next(err);
+            return next(new InternalServerError(`Could not fetch comment : ${error}`));
         }
     }else{
         try{
             const comments = await Comment.find({});
             res.status(200).json(comments);
         }catch(error){
-            const err = new Error(`Could not fetch comments : ${error}`) as CustomError;
-            err.statusCode = 500;
-            return next(err);
+            return next(new InternalServerError(`Could not fetch comments : ${error}`));
         }
     }
 })

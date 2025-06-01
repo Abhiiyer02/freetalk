@@ -1,6 +1,8 @@
 import {Router, Request, Response, NextFunction} from "express";
 import User from "../../models/user";
 import jwt from 'jsonwebtoken';
+import { BadRequestError } from "../../../common";
+import { DatabaseError } from "common/src/errors/database-error";
 
 
 const router = Router();
@@ -10,9 +12,7 @@ router.post('/signup', async(req:Request, res:Response, next:NextFunction)=>{
     try{
         const user = await User.findOne({email})
         if(user){
-            const err = new Error('User with this email already exists') as CustomError;
-            err.statusCode = 400;
-            return next(err);
+            return next(new BadRequestError('User with this email already exists'));
         }
 
         const newUser = new User({
@@ -25,9 +25,7 @@ router.post('/signup', async(req:Request, res:Response, next:NextFunction)=>{
         req.session = {jwt: token};
         res.status(201).send(newUser);
     }catch(error){
-        const err = new Error(`Database Operation failed : ${error}`) as CustomError;
-        err.statusCode = 500; 
-        return next(err);
+        return next(new DatabaseError(`Database Operation failed : ${error}`) );
     }
 
 })

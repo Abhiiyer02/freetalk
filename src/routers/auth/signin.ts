@@ -1,7 +1,9 @@
 import {Router, Request, Response, NextFunction} from "express";
 import User from "../../models/user";
-import { authenticationService } from "../../../common";
+import { authenticationService, BadRequestError, NotFoundError } from "../../../common";
 import jwt from 'jsonwebtoken';
+import { DatabaseError } from "common/src/errors/database-error";
+import { InternalServerError } from "common/src/errors/internal-server-error";
 
 const router = Router();
 router.post('/signin', async(req:Request, res:Response, next:NextFunction)=>{
@@ -11,22 +13,16 @@ router.post('/signin', async(req:Request, res:Response, next:NextFunction)=>{
         if(user){
             const result = await authenticationService.compare(user?.password,password); 
             if(!result){
-                const err = new Error('Invalid Credentials') as CustomError;
-                err.statusCode = 401;
-                return next(err);
+                return next(new BadRequestError('Invalid Credentials'));
             }
             const token = jwt.sign({email, userId: user._id}, process.env.JWT_KEY! as string,{expiresIn: '1h'});
             req.session = {jwt: token};
             res.status(200).send(user);
         }else{
-            const err = new Error('User  not found') as CustomError;
-            err.statusCode = 404;
-            return next(err);
+            return next(new NotFoundError());
         }
     }catch(error){
-        const err = new Error(`Database Operation failed during auth: ${error}`) as CustomError;
-        err.statusCode = 500; 
-        return next(err);
+        return next(new InternalServerError(`Database Operation failed during auth: ${error}`));
     }
     
 })

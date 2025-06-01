@@ -1,5 +1,6 @@
 import { Router,Request,Response,NextFunction } from "express"; 
 import Post from "../../models/post";
+import { InternalServerError, NotFoundError } from "../../../common";
 
 const router = Router();
 router.post('/api/post/show/', async(req: Request, res: Response, next: NextFunction) => {
@@ -11,9 +12,7 @@ router.post('/api/post/show/', async(req: Request, res: Response, next: NextFunc
             const allPosts = await Post.find({});
             res.status(200).send(allPosts);
         } catch (error) {
-            const err = new Error(`Database fetch failed : ${error}`) as CustomError;
-            err.statusCode = 500; 
-            return next(err);
+            return next(new InternalServerError(`Fetch failed : ${error}`));
         }
     } else {
         // ID provided - get specific post
@@ -23,15 +22,11 @@ router.post('/api/post/show/', async(req: Request, res: Response, next: NextFunc
             console.log(`Fetching post with id ${id}`);
             const post = await Post.findOne({ _id: id });
             if(!post){
-                const err = new Error(`Post with id ${id} not found`) as CustomError;
-                err.statusCode = 404;
-                return next(err);
+                return next(new NotFoundError(`Post with id ${id} not found`));
             }
             res.status(200).send(post);
         } catch (error) {
-            const err = new Error(`Database fetch for post with id ${id} failed : ${error}`) as CustomError;
-            err.statusCode = 500;
-            return next(err);
+            return next(new InternalServerError(`Fetch for post with id ${id} failed : ${error}`));
         }
     }
 });

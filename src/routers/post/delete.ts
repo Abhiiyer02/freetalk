@@ -1,22 +1,19 @@
 import {Router, Request, Response, NextFunction} from "express";
 import Post from "../../models/post";
+import { BadRequestError,InternalServerError } from "../../../common";
 
 const router = Router();    
 
 router.delete('/api/post/delete/:id', async(req:Request, res:Response, next:NextFunction)=>{
     const  { id } = req.params
     if(!id){
-        const err = new Error('Id is required') as CustomError;
-        err.statusCode = 400;
-        return next(err);
+        return next(new BadRequestError('Id is required'));
     }
     try{
         await Post.findOneAndDelete({ _id: id });
         res.status(200).json({message: `Post ${id} deleted successfully`});
     }catch(error){
-        const err = new Error(`Delete failed on DB : ${error}`) as CustomError;
-        err.statusCode = 500;
-        return next(err);
+        return next(new InternalServerError(`Post ${id} could not be deleted`))
     }
 })
 

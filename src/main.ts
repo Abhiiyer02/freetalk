@@ -16,7 +16,7 @@ import {
     signinRouter,
     signoutRouter
 } from "./routers"
-import { currentUser } from "../common";
+import { currentUser, errorHandler, NotFoundError } from "../common";
 import { requireAuth } from "../common";
 // import {json,urlencoded} from "body-parser";
 // express version 4.0+
@@ -70,6 +70,13 @@ app.use(requireAuth,newCommentRouter);
 app.use(requireAuth,updatedCommentRouter);
 app.use(requireAuth,deleteCommentRouter);
 app.use(requireAuth,showCommentsRouter);
+
+
+app.all('*', async(req:Request, res:Response, next: NextFunction)=>{
+    throw new NotFoundError();
+})
+
+app.use(errorHandler);
 
 
 

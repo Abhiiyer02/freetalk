@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import express  from "express";
 import Comment from "../../models/comment";
 import Post from "../../models/post";
+import { BadRequestError, InternalServerError } from "../../../common";
 
 const router = express.Router();
 
@@ -10,9 +11,7 @@ router.post('/api/comment/new/:postId', async (req: Request, res: Response, next
     const { postId } = req.params;
     const { userName, content } = req.body;
     if(!content){
-        const err = new Error('Content must be provided') as CustomError;
-        err.statusCode = 400;
-        return next(err);
+        return next(new BadRequestError('Content must be provided'));
     }
 
     const newComment = new Comment({
@@ -32,7 +31,7 @@ router.post('/api/comment/new/:postId', async (req: Request, res: Response, next
     }catch(error){
         const err = new Error(`Comment creation failed : ${error}`) as CustomError;
         err.statusCode = 500;
-        return next(err);
+        return next(new InternalServerError(`Comment creation failed : ${error}`));
     }
     
 })

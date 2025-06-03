@@ -1,9 +1,7 @@
 import {Router, Request, Response, NextFunction} from "express";
 import User from "../../models/user";
-import { authenticationService, BadRequestError, NotFoundError } from "../../../common";
+import { DatabaseError ,InternalServerError,authenticationService, BadRequestError, NotFoundError } from "../../../common";
 import jwt from 'jsonwebtoken';
-import { DatabaseError } from "common/src/errors/database-error";
-import { InternalServerError } from "common/src/errors/internal-server-error";
 
 const router = Router();
 router.post('/signin', async(req:Request, res:Response, next:NextFunction)=>{
@@ -17,7 +15,7 @@ router.post('/signin', async(req:Request, res:Response, next:NextFunction)=>{
             }
             const token = jwt.sign({email, userId: user._id}, process.env.JWT_KEY! as string,{expiresIn: '1h'});
             req.session = {jwt: token};
-            res.status(200).send(user);
+            res.status(201).send(user);
         }else{
             return next(new NotFoundError());
         }
